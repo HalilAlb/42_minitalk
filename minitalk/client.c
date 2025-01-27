@@ -5,92 +5,93 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: malbayra <malbayra@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/24 17:12:14 by malbayra          #+#    #+#             */
-/*   Updated: 2025/01/24 19:45:01 by malbayra         ###   ########.fr       */
+/*   Created: 2025/01/27 14:03:25 by malbayra          #+#    #+#             */
+/*   Updated: 2025/01/27 14:14:01 by malbayra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
-
-void	ft_error_handler(int i)
+void	ft_send_bit(int pid, int bit)
 {
-	if (i == 0)
+	if (bit == 1)
 	{
-		write(1, "Error KILL\n", 12);
-		exit(1);
+		if (kill(pid, SIGUSR2) == -1)
+			ft_printf("%s","Error KILL\n");
 	}
-	if (i == 1)
+	else
 	{
-		write(1, "Error SIGACTION\n", 17);
-		exit(1);
+		if (kill(pid, SIGUSR1) == -1)
+			ft_printf("%s","Error SIGACTION\n");
 	}
 }
 
 void	ft_send_terminator(int pid)
 {
-	static int	i = 0;
+	int	i;
 
-	if (i <= 8)
+	i = 0;
+	while (i++ <= 8)
+	{
 		if (kill(pid, SIGUSR1) == -1)
-			ft_error_handler(0);
-	i++;
+			ft_printf("%s","Error KILL\n");
+	}
+	exit(0);
 }
 
-void	ft_send_signal(int pid, char *str)
+void	ft_send_str(int pid, char *str)
 {
-	static int	bit = 0;
-	static char	*str_bis = 0;
+	static int	bit_index = 0;
+	static char	*message = 0;
+	char		current_char;
+	int			current_bit;
 
 	if (str)
-		str_bis = str;
-	if (*str_bis)
+		message = str;
+	if (message && message[bit_index / 8])
 	{
-		if ((((unsigned char)*str_bis >> bit) % 2) == 0)
-			if (kill(pid, SIGUSR1) == -1)
-				ft_error_handler(0);
-		if ((((unsigned char)*str_bis >> bit) % 2) == 1)
-			if (kill(pid, SIGUSR2) == -1)
-				ft_error_handler(0);
-		bit++;
-		if (bit == 8)
-		{
-			str_bis++;
-			bit = 0;
-		}
+		current_char = message[bit_index / 8];
+		current_bit = (current_char >> (bit_index % 8)) & 1;
+		if (current_bit == 1 && kill(pid, SIGUSR2) == -1)
+			ft_printf("%s","Error KILL\n");
+		else if (current_bit == 0 && kill(pid, SIGUSR1) == -1)
+			ft_printf("%s","Error KILL\n");
+		bit_index++;
 	}
-	if (!(*str_bis))
-		ft_send_terminator(pid);
+	else if (message)
+	{
+		while (bit_index++ <= 8)
+			if (kill(pid, SIGUSR1) == -1)
+				ft_printf("%s","Error KILL\n");
+		exit(0);
+	}
 }
 
 void	ft_receipt(int sig, siginfo_t *info, void *context)
 {
-	static int	id;
+	static int	pid = 0;
 
-	if (info->si_pid != 0)
-		id = info->si_pid;
-	(void)context ;
+	(void)context;
+	if (info->si_pid)
+		pid = info->si_pid;
 	if (sig == SIGUSR1)
-		ft_send_signal(id, NULL);
-	if (sig == SIGUSR2)
-		exit(EXIT_SUCCESS);
+		ft_send_str(pid, NULL);
+	else if (sig == SIGUSR2)
+		exit(0);
 }
 
 int	main(int ac, char **av)
 {
-	struct sigaction	action;
+	struct sigaction	sa;
 
-	action.sa_flags = SA_SIGINFO;
-	action.sa_sigaction = ft_receipt;
-	if (sigaction(SIGUSR1, &action, NULL) == -1
-		|| sigaction(SIGUSR2, &action, NULL) == -1)
-		ft_error_handler(1);
 	if (ac != 3)
-	{
-		write(1, "Utilisez le format: ./client <PID> <String>\n", 44);
-		exit(EXIT_FAILURE);
-	}
-	ft_send_signal(ft_atoi(av[1]), av[2]);
+		ft_printf("%s","Usage: ./client <PID> <String>");
+	sa.sa_flags = SA_SIGINFO;
+	sa.sa_sigaction = ft_receipt;
+	if (sigaction(SIGUSR1, &sa, NULL) == -1
+		|| sigaction(SIGUSR2, &sa, NULL) == -1)
+		ft_printf("%s","SIGACTION");
+	ft_send_str(ft_atoi(av[1]), av[2]);
 	while (1)
 		pause();
 	return (0);

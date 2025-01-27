@@ -6,71 +6,54 @@
 /*   By: malbayra <malbayra@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/05 17:01:31 by malbayra          #+#    #+#             */
-/*   Updated: 2025/01/24 19:45:19 by malbayra         ###   ########.fr       */
+/*   Updated: 2025/01/27 14:01:20 by malbayra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
-void	ft_error_handler(int i)
+void	ft_error(const char *msg)
 {
-	if (i == 0)
-	{
-		write(1, "Error KILL\n", 12);
-		exit(1);
-	}
-	if (i == 1)
-	{
-		write(1, "Error SIGACTION\n", 17);
-		exit(1);
-	}
+	ft_printf("%s", msg);
+	exit(1);
 }
 
-void	ft_signal_handler(int sig, siginfo_t *info, void *context)
+void	ft_handler(int sig, siginfo_t *info, void *context)
 {
-	static unsigned char	val = 0;
-	static int				bit = 1;
-	static int				id = 0;
+	static unsigned char	c = 0;
+	static int				bit = 0;
 
-	if (info->si_pid != 0)
-		id = info->si_pid;
-	(void)context ;
-	if (sig == SIGUSR1)
-		val += 0;
-	if (sig == SIGUSR2)
-		val += bit;
-	bit <<= 1;
-	if (bit == 256)
+	(void)context;
+	c |= (sig == SIGUSR2) << bit++;
+	if (bit == 8)
 	{
-		bit = 1;
-		if (val == 0)
-			if (kill(id, SIGUSR2) == -1)
-				ft_error_handler(0);
-		if (val != 0)
-			write(1, &val, 1);
-		val = 0;
+		if (c > 127)
+		{
+			c = 0;
+			bit = 0;
+			kill(info->si_pid, SIGUSR1);
+			return ;
+		}
+		if (c == 0)
+			kill(info->si_pid, SIGUSR2);
+		else
+			ft_printf("%c", c);
+		c = 0;
+		bit = 0;
 	}
-	if (kill(id, SIGUSR1) == -1)
-		ft_error_handler(0);
+	kill(info->si_pid, SIGUSR1);
 }
 
 int	main(void)
 {
-	pid_t				pid;
-	struct sigaction	action;
+	struct sigaction	sa;
 
-	action.sa_flags = SA_SIGINFO;
-	action.sa_sigaction = ft_signal_handler;
-	pid = getpid();
-	if (sigaction(SIGUSR1, &action, NULL) == -1
-		|| sigaction(SIGUSR2, &action, NULL) == -1)
-	{
-		ft_error_handler(1);
-		return (1);
-	}
-	write(1, "PID = ", 6);
-	ft_putnbr(pid);
-	write(1, "\n", 1);
+	sa.sa_sigaction = ft_handler;
+	sa.sa_flags = SA_SIGINFO;
+	if (sigaction(SIGUSR1, &sa, NULL) == -1
+		|| sigaction(SIGUSR2, &sa, NULL) == -1)
+		ft_error("Signal Error\n");
+	ft_printf("PID: %d\n", getpid());
 	while (1)
 		pause();
 	return (0);
