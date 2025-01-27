@@ -6,7 +6,7 @@
 /*   By: malbayra <malbayra@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 14:03:25 by malbayra          #+#    #+#             */
-/*   Updated: 2025/01/27 14:14:01 by malbayra         ###   ########.fr       */
+/*   Updated: 2025/01/27 17:05:28 by malbayra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,12 +17,12 @@ void	ft_send_bit(int pid, int bit)
 	if (bit == 1)
 	{
 		if (kill(pid, SIGUSR2) == -1)
-			ft_printf("%s","Error KILL\n");
+			ft_printf("%s", "Error KILL\n");
 	}
 	else
 	{
 		if (kill(pid, SIGUSR1) == -1)
-			ft_printf("%s","Error SIGACTION\n");
+			ft_printf("%s", "Error SIGACTION\n");
 	}
 }
 
@@ -34,7 +34,7 @@ void	ft_send_terminator(int pid)
 	while (i++ <= 8)
 	{
 		if (kill(pid, SIGUSR1) == -1)
-			ft_printf("%s","Error KILL\n");
+			ft_printf("%s", "Error KILL\n");
 	}
 	exit(0);
 }
@@ -53,16 +53,16 @@ void	ft_send_str(int pid, char *str)
 		current_char = message[bit_index / 8];
 		current_bit = (current_char >> (bit_index % 8)) & 1;
 		if (current_bit == 1 && kill(pid, SIGUSR2) == -1)
-			ft_printf("%s","Error KILL\n");
+			ft_printf("%s", "Error KILL\n");
 		else if (current_bit == 0 && kill(pid, SIGUSR1) == -1)
-			ft_printf("%s","Error KILL\n");
+			ft_printf("%s", "Error KILL\n");
 		bit_index++;
 	}
 	else if (message)
 	{
 		while (bit_index++ <= 8)
 			if (kill(pid, SIGUSR1) == -1)
-				ft_printf("%s","Error KILL\n");
+				ft_printf("%s", "Error KILL\n");
 		exit(0);
 	}
 }
@@ -85,13 +85,13 @@ int	main(int ac, char **av)
 	struct sigaction	sa;
 
 	if (ac != 3)
-		ft_printf("%s","Usage: ./client <PID> <String>");
+		ft_printf("%s", "Usage: ./client <PID> <String>");
 	sa.sa_flags = SA_SIGINFO;
 	sa.sa_sigaction = ft_receipt;
 	if (sigaction(SIGUSR1, &sa, NULL) == -1
 		|| sigaction(SIGUSR2, &sa, NULL) == -1)
-		ft_printf("%s","SIGACTION");
-	ft_send_str(ft_atoi(av[1]), av[2]);
+		ft_printf("%s", "SIGACTION");
+	ft_send_str (ft_atoi(av[1]), av[2]);
 	while (1)
 		pause();
 	return (0);
