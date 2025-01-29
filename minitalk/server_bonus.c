@@ -6,14 +6,12 @@
 /*   By: malbayra <malbayra@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/29 13:02:21 by malbayra          #+#    #+#             */
-/*   Updated: 2025/01/29 17:28:04 by malbayra         ###   ########.fr       */
+/*   Updated: 2025/01/29 18:33:43 by malbayra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk_bonus.h"
 
-
-static int is_message_received = 0;  // Global değişken
 
 void	ft_handler(int sig, siginfo_t *info, void *context)
 {
@@ -32,10 +30,7 @@ void	ft_handler(int sig, siginfo_t *info, void *context)
 			return ;
 		}
 		if (c == 0)
-        {
-            is_message_received = 1;
             kill(info->si_pid, SIGUSR2);  
-        }
 		else
 			ft_printf("%c", c);
 		c = 0;
@@ -50,6 +45,7 @@ int	main(void)
 
 	sa.sa_sigaction = ft_handler;
 	sa.sa_flags = SA_SIGINFO;
+	sigemptyset(&sa.sa_mask);
 	if (sigaction(SIGUSR1, &sa, NULL) == -1
 		|| sigaction(SIGUSR2, &sa, NULL) == -1)
 		ft_printf("Signal Error\n");

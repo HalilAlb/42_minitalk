@@ -6,7 +6,7 @@
 /*   By: malbayra <malbayra@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 14:03:25 by malbayra          #+#    #+#             */
-/*   Updated: 2025/01/29 12:54:03 by malbayra         ###   ########.fr       */
+/*   Updated: 2025/01/29 18:20:52 by malbayra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,12 +71,19 @@ int	main(int ac, char **av)
 	struct sigaction	sa;
 
 	if (ac != 3)
-		ft_printf("%s", "Usage: ./client <PID> <String>");
+	{
+		if (ac < 3)
+			ft_printf("\e[37;31mERROR: not enough arguments\n");
+		if (ac > 3)
+			ft_printf("\e[37;31mERROR: too many arguments\n");
+		ft_printf("\e[0mUSAGE: ./client <server_pid> <string>\n");
+		return (1);
+	}
 	sa.sa_flags = SA_SIGINFO;
 	sa.sa_sigaction = ft_receipt;
 	if (sigaction(SIGUSR1, &sa, NULL) == -1
 		|| sigaction(SIGUSR2, &sa, NULL) == -1)
-		ft_printf("%s", "SIGACTION");
+		ft_printf("SIGACTION");
 	ft_send_str (ft_atoi(av[1]), av[2]);
 	while (1)
 		pause();

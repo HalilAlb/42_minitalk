@@ -6,14 +6,13 @@
 /*   By: malbayra <malbayra@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/29 13:02:40 by malbayra          #+#    #+#             */
-/*   Updated: 2025/01/29 17:31:08 by malbayra         ###   ########.fr       */
+/*   Updated: 2025/01/29 18:27:52 by malbayra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 #include "minitalk_bonus.h"
 
-static int is_message_received = 0;  // Global değişken
 
 void	ft_send_str(int pid, char *str)
 {
@@ -50,16 +49,13 @@ void	ft_receipt(int sig, siginfo_t *info, void *context)
 	(void)context;
 	if (info->si_pid)
 		pid = info->si_pid;
+		
 	if (sig == SIGUSR1)
 		ft_send_str(pid, NULL);
 	else if (sig == SIGUSR2)
 	{
-		// Mesaj alındı, client bu durumu yazacak
-		if (!is_message_received)  // Global değişken kontrolü
-		{
-			ft_printf("Mesaj alindi\n");
-		}
-		exit(0);  // Client sonlanacak
+		ft_printf("Mesaj alindi\n");
+		exit(0);
 	}
 }
 
@@ -71,10 +67,10 @@ int	main(int ac, char **av)
 		ft_printf("Usage: ./client <PID> <String>");
 	sa.sa_flags = SA_SIGINFO;
 	sa.sa_sigaction = ft_receipt;
+	sigemptyset(&sa.sa_mask);
 	if (sigaction(SIGUSR1, &sa, NULL) == -1
 		|| sigaction(SIGUSR2, &sa, NULL) == -1)
 		ft_printf("%s", "SIGACTION");
-
 	ft_send_str(ft_atoi(av[1]), av[2]);
 
 	while (1)
