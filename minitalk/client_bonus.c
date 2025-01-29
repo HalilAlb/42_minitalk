@@ -1,29 +1,19 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   client.c                                           :+:      :+:    :+:   */
+/*   client_bonus.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: malbayra <malbayra@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/27 14:03:25 by malbayra          #+#    #+#             */
-/*   Updated: 2025/01/29 12:54:03 by malbayra         ###   ########.fr       */
+/*   Created: 2025/01/29 13:02:40 by malbayra          #+#    #+#             */
+/*   Updated: 2025/01/29 17:31:08 by malbayra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minitalk.h"
 
-// void	ft_send_terminator(int pid)
-// {
-// 	int	i;
+#include "minitalk_bonus.h"
 
-// 	i = 0;
-// 	while (i++ <= 8)
-// 	{
-// 		if (kill(pid, SIGUSR1) == -1)
-// 			ft_printf("%s", "Error KILL\n");
-// 	}
-// 	exit(0);
-// }
+static int is_message_received = 0;  // Global değişken
 
 void	ft_send_str(int pid, char *str)
 {
@@ -63,7 +53,14 @@ void	ft_receipt(int sig, siginfo_t *info, void *context)
 	if (sig == SIGUSR1)
 		ft_send_str(pid, NULL);
 	else if (sig == SIGUSR2)
-		exit(0);
+	{
+		// Mesaj alındı, client bu durumu yazacak
+		if (!is_message_received)  // Global değişken kontrolü
+		{
+			ft_printf("Mesaj alindi\n");
+		}
+		exit(0);  // Client sonlanacak
+	}
 }
 
 int	main(int ac, char **av)
@@ -71,14 +68,17 @@ int	main(int ac, char **av)
 	struct sigaction	sa;
 
 	if (ac != 3)
-		ft_printf("%s", "Usage: ./client <PID> <String>");
+		ft_printf("Usage: ./client <PID> <String>");
 	sa.sa_flags = SA_SIGINFO;
 	sa.sa_sigaction = ft_receipt;
 	if (sigaction(SIGUSR1, &sa, NULL) == -1
 		|| sigaction(SIGUSR2, &sa, NULL) == -1)
 		ft_printf("%s", "SIGACTION");
-	ft_send_str (ft_atoi(av[1]), av[2]);
+
+	ft_send_str(ft_atoi(av[1]), av[2]);
+
 	while (1)
 		pause();
 	return (0);
 }
+
