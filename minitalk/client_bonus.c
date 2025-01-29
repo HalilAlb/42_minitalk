@@ -6,7 +6,7 @@
 /*   By: malbayra <malbayra@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/29 13:02:40 by malbayra          #+#    #+#             */
-/*   Updated: 2025/01/29 21:20:37 by malbayra         ###   ########.fr       */
+/*   Updated: 2025/01/29 21:24:26 by malbayra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,8 +16,16 @@
 
 static void send_bit(int pid, int bit)
 {
-    if (kill(pid, bit == 1 ? SIGUSR2 : SIGUSR1) == -1)
-        ft_printf("Hata: kill(%s)\n", bit == 1 ? "SIGUSR2" : "SIGUSR1");
+    if (bit == 1)
+    {
+        if (kill(pid, SIGUSR2) == -1)
+            ft_printf("Hata: kill(SIGUSR2)\n");
+    }
+    else if (bit == 0)
+    {
+        if (kill(pid, SIGUSR1) == -1)
+            ft_printf("Hata: kill(SIGUSR1)\n");
+    }
 }
 
 static void send_null_terminator(int pid, int *sent)
