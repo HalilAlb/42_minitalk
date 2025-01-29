@@ -6,52 +6,50 @@
 /*   By: malbayra <malbayra@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 14:03:25 by malbayra          #+#    #+#             */
-/*   Updated: 2025/01/29 18:20:52 by malbayra         ###   ########.fr       */
+/*   Updated: 2025/01/29 18:44:01 by malbayra         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
-// void	ft_send_terminator(int pid)
-// {
-// 	int	i;
-
-// 	i = 0;
-// 	while (i++ <= 8)
-// 	{
-// 		if (kill(pid, SIGUSR1) == -1)
-// 			ft_printf("%s", "Error KILL\n");
-// 	}
-// 	exit(0);
-// }
-
 void	ft_send_str(int pid, char *str)
 {
 	static int	bit_index = 0;
-	static char	*message = 0;
-	char		current_char;
+	static int	byte_index = 0;
+	static unsigned char	*message = 0;
+	unsigned char	current_byte;
 	int			current_bit;
 
 	if (str)
-		message = str;
-	if (message && message[bit_index / 8])
+		message = (unsigned char *)str;
+
+	if (message && message[byte_index]) // Mesaj bitmediyse
 	{
-		current_char = message[bit_index / 8];
-		current_bit = (current_char >> (bit_index % 8)) & 1;
+		current_byte = message[byte_index];  
+		current_bit = (current_byte >> bit_index) & 1;
+
 		if (current_bit == 1 && kill(pid, SIGUSR2) == -1)
-			ft_printf("%s", "Error KILL\n");
+			ft_printf("Error: KILL\n");
 		else if (current_bit == 0 && kill(pid, SIGUSR1) == -1)
-			ft_printf("%s", "Error KILL\n");
+			ft_printf("Error: KILL\n");
+
 		bit_index++;
+
+		if (bit_index == 8)  // 1 byte tamamlandıysa
+		{
+			bit_index = 0;
+			byte_index++;  // Sonraki byte'a geç
+		}
 	}
-	else if (message)
+	else if (message) // Mesaj bittiğinde null terminator yolla
 	{
-		while (bit_index++ <= 8)
-			if (kill(pid, SIGUSR1) == -1)
-				ft_printf("%s", "Error KILL\n");
+		while (bit_index++ < 8)
+			kill(pid, SIGUSR1);
+
 		exit(0);
 	}
 }
+
 
 void	ft_receipt(int sig, siginfo_t *info, void *context)
 {
