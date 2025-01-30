@@ -65,11 +65,13 @@ clean:
 	@make clean -C $(LIBFTDIR)
 	@make clean -C $(PRINTF_DIR)
 	$(RM) $(OBJS_SERVER) $(OBJS_CLIENT) $(OBJS_SERVER_BONUS) $(OBJS_CLIENT_BONUS)
+	clear
 
 fclean: clean
 	@make fclean -C $(LIBFTDIR)
 	@make fclean -C $(PRINTF_DIR)
 	$(RM) $(NAME_SERVER) $(NAME_CLIENT) $(NAME_SERVER_BONUS) $(NAME_CLIENT_BONUS)
+	clear
 
 re: fclean all
 
